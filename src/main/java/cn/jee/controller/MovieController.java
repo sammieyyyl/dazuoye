@@ -93,7 +93,11 @@ public class MovieController {
       return "redirect:/movie/list";
     }
 
-    String fileName = file == null ? null : file.getOriginalFilename();
+    if (file == null || file.isEmpty()) {
+      throw new IOException("请选择文件");
+    }
+
+    String fileName = file.getOriginalFilename();
     if (fileName == null || fileName.isBlank()) {
       fileName = "file";
     }
