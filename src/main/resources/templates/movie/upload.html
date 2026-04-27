@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>upload</title>
+</head>
+<body>
+
+<form th:action="@{/movie/upload}" method="post" enctype="multipart/form-data">
+  <input type="hidden" name="watchTime" th:value="${watchTime}">
+  选择文件: <input type="file" name="file"><br>
+  <input type="submit" value="上传">
+</form>
+
+<br>
+<a th:href="@{/movie/list}">返回列表</a>
+
+</body>
+</html>
