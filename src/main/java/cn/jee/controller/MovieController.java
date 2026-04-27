@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("/movie")
@@ -109,5 +111,23 @@ public class MovieController {
     movieRepository.save(movie);
 
     return "redirect:/movie/list";
+  }
+
+  @ResponseBody
+  @RequestMapping("/images")
+  public List<String> images(String watchTime, HttpSession session) {
+    Object loginUser = session.getAttribute("login_user");
+    if (loginUser == null) {
+      return List.of();
+    }
+    var movieOpt = movieRepository.findByWatchTime(watchTime);
+    if (movieOpt.isEmpty()) {
+      return List.of();
+    }
+    Movie movie = movieOpt.get();
+    if (movie.getImages() == null) {
+      return List.of();
+    }
+    return movie.getImages();
   }
 }
