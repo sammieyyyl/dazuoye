@@ -19,7 +19,7 @@
   <span style="color:red" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
   <br>
 
-  评价(至少20字): <textarea th:field="*{comment}"></textarea><br>
+  评价(至少20字): <input type="text" th:field="*{comment}"><br>
   <span style="color:red" th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}"></span>
   <br>
 

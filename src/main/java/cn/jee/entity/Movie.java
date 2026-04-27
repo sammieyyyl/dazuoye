@@ -30,18 +30,18 @@ public class Movie {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @NotBlank
-  @Size(min = 10, max = 10)
+  @NotBlank(message = "{movie.watchTime.notBlank}")
+  @Size(min = 10, max = 10, message = "{movie.watchTime.size}")
   @Column(unique = true, nullable = false, length = 10)
   private String watchTime;
 
   private String name;
 
-  @NotNull
+  @NotNull(message = "{movie.price.positive}")
   @Positive(message = "{movie.price.positive}")
   private Double price;
 
-  @NotBlank
+  @NotNull(message = "{movie.comment.min}")
   @Size(min = 20, message = "{movie.comment.min}")
   private String comment;
 
