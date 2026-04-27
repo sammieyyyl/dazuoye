@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>movie list</title>
+</head>
+<body>
+当前用户: <span th:text="${username}"></span><br>
+<table border="1">
+  <tr>
+    <th>观看时间</th>
+    <th>电影名</th>
+    <th>票价</th>
+    <th>评价</th>
+    <th>操作</th>
+  </tr>
+  <tr th:each="m : ${movies}">
+    <td th:text="${m.watchTime}"></td>
+    <td th:text="${m.name}"></td>
+    <td th:text="${m.price}"></td>
+    <td th:text="${m.comment}"></td>
+    <td>
+      <a th:href="@{/movie/upload_page(watchTime=${m.watchTime})}">新增图片</a><br>
+      <a th:href="@{/movie/images(watchTime=${m.watchTime})}">查看图片</a>
+    </td>
+  </tr>
+</table>
+<br>
+<a th:href="@{/movie/new}">新增电影</a>
+</body>
+</html>
