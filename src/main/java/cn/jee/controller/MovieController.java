@@ -5,12 +5,11 @@ import cn.jee.repository.MovieRepository;
 import cn.jee.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,17 +23,24 @@ import java.util.List;
 @Controller
 @RequestMapping("/movie")
 public class MovieController {
-  @Autowired
-  MovieRepository movieRepository;
+  private static final String SESSION_LOGIN_USER = "login_user";
+  private static final String REDIRECT_ROOT = "redirect:/";
+  private static final String REDIRECT_MOVIE_LIST = "redirect:/movie/list";
 
-  @Autowired
-  UserRepository userRepository;
+  private final MovieRepository movieRepository;
+
+  private final UserRepository userRepository;
+
+  public MovieController(MovieRepository movieRepository, UserRepository userRepository) {
+    this.movieRepository = movieRepository;
+    this.userRepository = userRepository;
+  }
 
   @RequestMapping("/list")
   public String list(Model model, HttpSession session) {
-    Object loginUser = session.getAttribute("login_user");
+    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
     if (loginUser == null) {
-      return "redirect:/";
+      return REDIRECT_ROOT;
     }
     String username = loginUser.toString();
     var movies = movieRepository.findAllByUser_NameOrderByWatchTimeDesc(username);
@@ -45,19 +51,19 @@ public class MovieController {
 
   @RequestMapping("/new")
   public String newPage(Model model, HttpSession session) {
-    Object loginUser = session.getAttribute("login_user");
+    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
     if (loginUser == null) {
-      return "redirect:/";
+      return REDIRECT_ROOT;
     }
     model.addAttribute("movie", new Movie());
     return "movie/new";
   }
 
-  @RequestMapping(value = "/save", method = RequestMethod.POST)
+  @PostMapping("/save")
   public String save(@Valid Movie movie, BindingResult bindingResult, HttpSession session) {
-    Object loginUser = session.getAttribute("login_user");
+    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
     if (loginUser == null) {
-      return "redirect:/";
+      return REDIRECT_ROOT;
     }
     if (bindingResult.hasErrors()) {
       return "movie/new";
@@ -65,32 +71,32 @@ public class MovieController {
     String username = loginUser.toString();
     var userOpt = userRepository.findByName(username);
     if (userOpt.isEmpty()) {
-      return "redirect:/";
+      return REDIRECT_ROOT;
     }
     movie.setUser(userOpt.get());
     movieRepository.save(movie);
-    return "redirect:/movie/list";
+    return REDIRECT_MOVIE_LIST;
   }
 
   @RequestMapping("/upload_page")
   public String uploadPage(String watchTime, Model model, HttpSession session) {
-    Object loginUser = session.getAttribute("login_user");
+    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
     if (loginUser == null) {
-      return "redirect:/";
+      return REDIRECT_ROOT;
     }
     model.addAttribute("watchTime", watchTime);
     return "movie/upload";
   }
 
-  @RequestMapping(value = "/upload", method = RequestMethod.POST)
+  @PostMapping("/upload")
   public String upload(String watchTime, MultipartFile file, HttpSession session) throws IOException {
-    Object loginUser = session.getAttribute("login_user");
+    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
     if (loginUser == null) {
-      return "redirect:/";
+      return REDIRECT_ROOT;
     }
     var movieOpt = movieRepository.findByWatchTime(watchTime);
     if (movieOpt.isEmpty()) {
-      return "redirect:/movie/list";
+      return REDIRECT_MOVIE_LIST;
     }
 
     if (file == null || file.isEmpty()) {
@@ -114,13 +120,13 @@ public class MovieController {
     movie.getImages().add(fileName);
     movieRepository.save(movie);
 
-    return "redirect:/movie/list";
+    return REDIRECT_MOVIE_LIST;
   }
 
   @ResponseBody
   @RequestMapping("/images")
   public List<String> images(String watchTime, HttpSession session) {
-    Object loginUser = session.getAttribute("login_user");
+    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
     if (loginUser == null) {
       return List.of();
     }

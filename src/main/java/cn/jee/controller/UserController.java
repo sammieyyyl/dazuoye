@@ -3,18 +3,20 @@ package cn.jee.controller;
 import cn.jee.entity.User;
 import cn.jee.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 @RequestMapping("/user")
 public class UserController {
-  @Autowired
-  UserRepository userRepository;
+  private final UserRepository userRepository;
 
-  @RequestMapping(value = "/login", method = RequestMethod.POST)
+  public UserController(UserRepository userRepository) {
+    this.userRepository = userRepository;
+  }
+
+  @PostMapping("/login")
   public String login(String name, HttpSession session) {
     if (name == null) {
       name = "";
