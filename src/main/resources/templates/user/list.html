@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>user list</title>
+</head>
+<body>
+当前用户: <span th:text="${username}"></span><br>
+
+<h3>用户列表</h3>
+<table>
+  <tr>
+    <th>ID</th>
+    <th>姓名</th>
+  </tr>
+  <tr th:each="u : ${users}">
+    <td th:text="${u.id}"></td>
+    <td th:text="${u.name}"></td>
+  </tr>
+</table>
+
+<br>
+<a th:href="@{/user/profile}">返回个人页</a>
+</body>
+</html>

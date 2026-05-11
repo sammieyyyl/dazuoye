@@ -3,6 +3,9 @@ package cn.jee.controller;
 import cn.jee.entity.Movie;
 import cn.jee.repository.MovieRepository;
 import cn.jee.repository.UserRepository;
+import cn.jee.web.Redirects;
+import cn.jee.web.SessionKeys;
+import cn.jee.web.Views;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -23,10 +26,6 @@ import java.util.List;
 @Controller
 @RequestMapping("/movie")
 public class MovieController {
-  private static final String SESSION_LOGIN_USER = "login_user";
-  private static final String REDIRECT_ROOT = "redirect:/";
-  private static final String REDIRECT_MOVIE_LIST = "redirect:/movie/list";
-
   private final MovieRepository movieRepository;
 
   private final UserRepository userRepository;
@@ -38,65 +37,65 @@ public class MovieController {
 
   @RequestMapping("/list")
   public String list(Model model, HttpSession session) {
-    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
+    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
     if (loginUser == null) {
-      return REDIRECT_ROOT;
+      return Redirects.ROOT;
     }
     String username = loginUser.toString();
     var movies = movieRepository.findAllByUser_NameOrderByWatchTimeDesc(username);
     model.addAttribute("movies", movies);
     model.addAttribute("username", username);
-    return "movie/list";
+    return Views.MOVIE_LIST;
   }
 
   @RequestMapping("/new")
   public String newPage(Model model, HttpSession session) {
-    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
+    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
     if (loginUser == null) {
-      return REDIRECT_ROOT;
+      return Redirects.ROOT;
     }
     model.addAttribute("movie", new Movie());
-    return "movie/new";
+    return Views.MOVIE_NEW;
   }
 
   @PostMapping("/save")
   public String save(@Valid Movie movie, BindingResult bindingResult, HttpSession session) {
-    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
+    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
     if (loginUser == null) {
-      return REDIRECT_ROOT;
+      return Redirects.ROOT;
     }
     if (bindingResult.hasErrors()) {
-      return "movie/new";
+      return Views.MOVIE_NEW;
     }
     String username = loginUser.toString();
     var userOpt = userRepository.findByName(username);
     if (userOpt.isEmpty()) {
-      return REDIRECT_ROOT;
+      return Redirects.ROOT;
     }
     movie.setUser(userOpt.get());
     movieRepository.save(movie);
-    return REDIRECT_MOVIE_LIST;
+    return Redirects.MOVIE_LIST;
   }
 
   @RequestMapping("/upload_page")
   public String uploadPage(String watchTime, Model model, HttpSession session) {
-    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
+    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
     if (loginUser == null) {
-      return REDIRECT_ROOT;
+      return Redirects.ROOT;
     }
     model.addAttribute("watchTime", watchTime);
-    return "movie/upload";
+    return Views.MOVIE_UPLOAD;
   }
 
   @PostMapping("/upload")
   public String upload(String watchTime, MultipartFile file, HttpSession session) throws IOException {
-    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
+    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
     if (loginUser == null) {
-      return REDIRECT_ROOT;
+      return Redirects.ROOT;
     }
     var movieOpt = movieRepository.findByWatchTime(watchTime);
     if (movieOpt.isEmpty()) {
-      return REDIRECT_MOVIE_LIST;
+      return Redirects.MOVIE_LIST;
     }
 
     if (file == null || file.isEmpty()) {
@@ -120,13 +119,13 @@ public class MovieController {
     movie.getImages().add(fileName);
     movieRepository.save(movie);
 
-    return REDIRECT_MOVIE_LIST;
+    return Redirects.MOVIE_LIST;
   }
 
   @ResponseBody
   @RequestMapping("/images")
   public List<String> images(String watchTime, HttpSession session) {
-    Object loginUser = session.getAttribute(SESSION_LOGIN_USER);
+    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
     if (loginUser == null) {
       return List.of();
     }

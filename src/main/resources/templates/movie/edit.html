@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>edit movie</title>
+</head>
+<body>
+<h3>编辑影片</h3>
+
+<form th:action="@{/movie/update}" method="post" th:object="${form}">
+  <input type="hidden" name="watchTime" th:value="${watchTime}">
+  电影名: <input type="text" th:field="*{name}"><br>
+  <span style="color:red" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+  <br>
+
+  票价: <input type="text" th:field="*{price}"><br>
+  <span style="color:red" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+  <br>
+
+  评价: <input type="text" th:field="*{comment}"><br>
+  <span style="color:red" th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}"></span>
+  <br>
+
+  <input type="submit" value="保存修改">
+</form>
+
+<h4>图片</h4>
+<div th:if="${#lists.isEmpty(images)}">暂无图片</div>
+<div th:each="img : ${images}">
+  <img th:src="${img}" style="max-width: 160px; max-height: 160px;">
+</div>
+
+<br>
+<a th:href="@{/movie/list}">返回列表</a>
+</body>
+</html>

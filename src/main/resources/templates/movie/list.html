@@ -6,6 +6,8 @@
 </head>
 <body>
 当前用户: <span th:text="${username}"></span><br>
+<a th:href="@{/user/profile}">个人中心</a>
+<br><br>
 <table>
   <tr>
     <th>观看时间</th>
@@ -20,12 +22,20 @@
     <td th:text="${m.price}"></td>
     <td th:text="${m.comment}"></td>
     <td>
+      <a th:href="@{/movie/detail(watchTime=${m.watchTime})}">详情</a><br>
+      <a th:href="@{/movie/edit(watchTime=${m.watchTime})}">编辑</a><br>
       <a th:href="@{/movie/upload_page(watchTime=${m.watchTime})}">新增图片</a><br>
-      <a th:href="@{/movie/images(watchTime=${m.watchTime})}">查看图片</a>
+      <a th:href="@{/movie/images(watchTime=${m.watchTime})}">查看图片</a><br>
+      <form th:action="@{/movie/delete}" method="post">
+        <input type="hidden" name="watchTime" th:value="${m.watchTime}">
+        <input type="submit" value="删除">
+      </form>
     </td>
   </tr>
 </table>
 <br>
 <a th:href="@{/movie/new}">新增电影</a>
+<br>
+<a th:href="@{/movie/create}">新增电影（Form版）</a>
 </body>
 </html>

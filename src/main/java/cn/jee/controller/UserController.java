@@ -2,6 +2,8 @@ package cn.jee.controller;
 
 import cn.jee.entity.User;
 import cn.jee.repository.UserRepository;
+import cn.jee.web.Redirects;
+import cn.jee.web.SessionKeys;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +29,7 @@ public class UserController {
       user.setName(name);
       userRepository.save(user);
     }
-    session.setAttribute("login_user", name);
-    return "redirect:/movie/list";
+    session.setAttribute(SessionKeys.LOGIN_USER, name);
+    return Redirects.MOVIE_LIST;
   }
 }

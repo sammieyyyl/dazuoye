@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>movie detail</title>
+</head>
+<body>
+当前用户: <span th:text="${username}"></span><br>
+<h3>影片详情</h3>
+<div>
+  <div>观看时间: <span th:text="${movie.watchTime}"></span></div>
+  <div>电影名: <span th:text="${movie.name}"></span></div>
+  <div>票价: <span th:text="${movie.price}"></span></div>
+  <div>评价: <span th:text="${movie.comment}"></span></div>
+</div>
+
+<h4>图片</h4>
+<div th:if="${#lists.isEmpty(images)}">暂无图片</div>
+<div th:each="img : ${images}">
+  <img th:src="${img}" style="max-width: 240px; max-height: 240px;">
+</div>
+
+<br>
+<a th:href="@{/movie/list}">返回列表</a>
+</body>
+</html>

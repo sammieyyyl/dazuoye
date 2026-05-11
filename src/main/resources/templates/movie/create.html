@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>create movie</title>
+</head>
+<body>
+<h3>新增电影（Form版）</h3>
+
+<form th:action="@{/movie/create}" method="post" th:object="${form}">
+  观看时间(10位): <input type="text" th:field="*{watchTime}"><br>
+  <span style="color:red" th:if="${#fields.hasErrors('watchTime')}" th:errors="*{watchTime}"></span>
+  <br>
+
+  电影名: <input type="text" th:field="*{name}"><br>
+  <span style="color:red" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+  <br>
+
+  票价: <input type="text" th:field="*{price}"><br>
+  <span style="color:red" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+  <br>
+
+  评价(至少20字): <input type="text" th:field="*{comment}"><br>
+  <span style="color:red" th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}"></span>
+  <br>
+
+  <input type="submit" value="创建">
+</form>
+
+<br>
+<a th:href="@{/movie/list}">返回列表</a>
+</body>
+</html>
