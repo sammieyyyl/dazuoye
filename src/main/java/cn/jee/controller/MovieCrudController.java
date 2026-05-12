@@ -5,7 +5,7 @@ import cn.jee.service.UploadService;
 import cn.jee.service.UserService;
 import cn.jee.web.Redirects;
 import cn.jee.web.Views;
-import cn.jee.web.form.MovieCreateForm;
+import cn.jee.web.dto.MovieDto;
 import cn.jee.web.form.MovieUpdateForm;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -38,14 +38,14 @@ public class MovieCrudController {
     if (usernameOpt.isEmpty()) {
       return Redirects.ROOT;
     }
-    var movieOpt = movieService.findByWatchTime(watchTime);
+    var movieOpt = movieService.findDtoByWatchTime(watchTime);
     if (movieOpt.isEmpty()) {
       return Redirects.MOVIE_LIST;
     }
-    var movie = movieOpt.get();
+    MovieDto movie = movieOpt.get();
     model.addAttribute("movie", movie);
     model.addAttribute("username", usernameOpt.get());
-    model.addAttribute("images", imageUrls(movie.getImages()));
+    model.addAttribute("images", imageUrls(movie.images()));
     return Views.MOVIE_DETAIL;
   }
 
@@ -55,18 +55,18 @@ public class MovieCrudController {
     if (usernameOpt.isEmpty()) {
       return Redirects.ROOT;
     }
-    var movieOpt = movieService.findByWatchTime(watchTime);
+    var movieOpt = movieService.findDtoByWatchTime(watchTime);
     if (movieOpt.isEmpty()) {
       return Redirects.MOVIE_LIST;
     }
-    var movie = movieOpt.get();
+    MovieDto movie = movieOpt.get();
     MovieUpdateForm form = new MovieUpdateForm();
-    form.setName(movie.getName());
-    form.setPrice(movie.getPrice());
-    form.setComment(movie.getComment());
+    form.setName(movie.name());
+    form.setPrice(movie.price());
+    form.setComment(movie.comment());
     model.addAttribute("watchTime", watchTime);
     model.addAttribute("form", form);
-    model.addAttribute("images", imageUrls(movie.getImages()));
+    model.addAttribute("images", imageUrls(movie.images()));
     return Views.MOVIE_EDIT;
   }
 
@@ -101,29 +101,6 @@ public class MovieCrudController {
     }
     movieService.removeImage(watchTime, imageName, usernameOpt.get());
     uploadService.deleteFromUploads(imageName);
-    return Redirects.MOVIE_LIST;
-  }
-
-  @RequestMapping("/create")
-  public String createPage(Model model, HttpSession session) {
-    var usernameOpt = userService.getLoginUsername(session);
-    if (usernameOpt.isEmpty()) {
-      return Redirects.ROOT;
-    }
-    model.addAttribute("form", new MovieCreateForm());
-    return "movie/create";
-  }
-
-  @PostMapping("/create")
-  public String create(@Valid MovieCreateForm form, BindingResult bindingResult, HttpSession session) {
-    var usernameOpt = userService.getLoginUsername(session);
-    if (usernameOpt.isEmpty()) {
-      return Redirects.ROOT;
-    }
-    if (bindingResult.hasErrors()) {
-      return "movie/create";
-    }
-    movieService.createMovie(form.toEntity(), usernameOpt.get());
     return Redirects.MOVIE_LIST;
   }
 

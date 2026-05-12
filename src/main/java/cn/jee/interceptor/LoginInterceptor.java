@@ -1,6 +1,5 @@
 package cn.jee.interceptor;
 
-import cn.jee.web.Redirects;
 import cn.jee.web.SessionKeys;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,6 +11,8 @@ import java.util.Set;
 
 @Component
 public class LoginInterceptor implements HandlerInterceptor {
+  private static final String LOGIN_PAGE = "/";
+
   private static final Set<String> ALLOWED_PREFIXES = Set.of(
     "/",
     "/index",
@@ -24,7 +25,7 @@ public class LoginInterceptor implements HandlerInterceptor {
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
     String uri = request.getRequestURI();
     if (uri == null) {
-      response.sendRedirect(Redirects.ROOT);
+      response.sendRedirect(LOGIN_PAGE);
       return false;
     }
     if (isAllowed(uri)) {
@@ -32,12 +33,12 @@ public class LoginInterceptor implements HandlerInterceptor {
     }
     HttpSession session = request.getSession(false);
     if (session == null) {
-      response.sendRedirect(Redirects.ROOT);
+      response.sendRedirect(LOGIN_PAGE);
       return false;
     }
     Object user = session.getAttribute(SessionKeys.LOGIN_USER);
     if (user == null || user.toString().trim().isBlank()) {
-      response.sendRedirect(Redirects.ROOT);
+      response.sendRedirect(LOGIN_PAGE);
       return false;
     }
     return true;
@@ -45,10 +46,13 @@ public class LoginInterceptor implements HandlerInterceptor {
 
   private boolean isAllowed(String uri) {
     for (String prefix : ALLOWED_PREFIXES) {
-      if (prefix.endsWith("/") && uri.startsWith(prefix)) {
+      if (prefix.endsWith("/") && !prefix.equals("/") && uri.startsWith(prefix)) {
         return true;
       }
       if (!prefix.endsWith("/") && uri.equals(prefix)) {
+        return true;
+      }
+      if (prefix.equals("/") && uri.equals("/")) {
         return true;
       }
     }

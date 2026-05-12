@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<form th:action="@{/movie/save}" th:object="${movie}" method="post">
+<form th:action="@{/movie/save}" th:object="${form}" method="post">
   观看时间(10位): <input type="text" th:field="*{watchTime}"><br>
   <span style="color:red" th:if="${#fields.hasErrors('watchTime')}" th:errors="*{watchTime}"></span>
   <br>

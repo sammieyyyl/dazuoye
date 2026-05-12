@@ -39,10 +39,7 @@ public class MovieApiController {
     if (usernameOpt.isEmpty()) {
       return ApiResponse.fail("未登录");
     }
-    List<MovieDto> movies = movieService.listByUsername(usernameOpt.get())
-      .stream()
-      .map(MovieDto::from)
-      .toList();
+    List<MovieDto> movies = movieService.listDtosByUsername(usernameOpt.get());
     return ApiResponse.ok("ok", movies);
   }
 
@@ -52,12 +49,11 @@ public class MovieApiController {
     if (usernameOpt.isEmpty()) {
       return ApiResponse.fail("未登录");
     }
-    var movieOpt = movieService.findByWatchTime(watchTime);
-    if (movieOpt.isEmpty()) {
+    var dtoOpt = movieService.findDtoByWatchTime(watchTime);
+    if (dtoOpt.isEmpty()) {
       return ApiResponse.fail("未找到影片");
     }
-    MovieDto dto = MovieDto.from(movieOpt.get());
-    return ApiResponse.ok("ok", dto);
+    return ApiResponse.ok("ok", dtoOpt.get());
   }
 
   @PostMapping("/create")
@@ -69,11 +65,11 @@ public class MovieApiController {
     if (bindingResult.hasErrors()) {
       return ApiResponse.fail("参数不合法", bindingResult.getAllErrors());
     }
-    var created = movieService.createMovie(form.toEntity(), usernameOpt.get());
+    var created = movieService.createMovieDto(form, usernameOpt.get());
     if (created.isEmpty()) {
       return ApiResponse.fail("创建失败");
     }
-    return ApiResponse.ok("ok", MovieDto.from(created.get()));
+    return ApiResponse.ok("ok", created.get());
   }
 
   @PostMapping("/update")
@@ -85,11 +81,11 @@ public class MovieApiController {
     if (bindingResult.hasErrors()) {
       return ApiResponse.fail("参数不合法", bindingResult.getAllErrors());
     }
-    var updated = movieService.updateMovie(watchTime, form.toUpdates(), usernameOpt.get());
+    var updated = movieService.updateMovieDto(watchTime, form, usernameOpt.get());
     if (updated.isEmpty()) {
       return ApiResponse.fail("更新失败");
     }
-    return ApiResponse.ok("ok", MovieDto.from(updated.get()));
+    return ApiResponse.ok("ok", updated.get());
   }
 
   @PostMapping("/delete")
@@ -112,11 +108,11 @@ public class MovieApiController {
       return ApiResponse.fail("未登录");
     }
     String stored = uploadService.saveToUploads(file);
-    var movieOpt = movieService.addImage(watchTime, stored, usernameOpt.get());
-    if (movieOpt.isEmpty()) {
+    var movieDtoOpt = movieService.addImageDto(watchTime, stored, usernameOpt.get());
+    if (movieDtoOpt.isEmpty()) {
       uploadService.deleteFromUploads(stored);
       return ApiResponse.fail("上传失败");
     }
-    return ApiResponse.ok("ok", MovieDto.from(movieOpt.get()));
+    return ApiResponse.ok("ok", movieDtoOpt.get());
   }
 }

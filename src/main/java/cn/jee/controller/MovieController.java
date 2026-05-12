@@ -1,11 +1,11 @@
 package cn.jee.controller;
 
-import cn.jee.entity.Movie;
-import cn.jee.repository.MovieRepository;
-import cn.jee.repository.UserRepository;
+import cn.jee.service.MovieService;
+import cn.jee.service.UploadService;
+import cn.jee.service.UserService;
 import cn.jee.web.Redirects;
-import cn.jee.web.SessionKeys;
 import cn.jee.web.Views;
+import cn.jee.web.form.MovieCreateForm;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -17,32 +17,29 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
 @RequestMapping("/movie")
 public class MovieController {
-  private final MovieRepository movieRepository;
+  private final MovieService movieService;
+  private final UploadService uploadService;
+  private final UserService userService;
 
-  private final UserRepository userRepository;
-
-  public MovieController(MovieRepository movieRepository, UserRepository userRepository) {
-    this.movieRepository = movieRepository;
-    this.userRepository = userRepository;
+  public MovieController(MovieService movieService, UploadService uploadService, UserService userService) {
+    this.movieService = movieService;
+    this.uploadService = uploadService;
+    this.userService = userService;
   }
 
   @RequestMapping("/list")
   public String list(Model model, HttpSession session) {
-    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
-    if (loginUser == null) {
+    var usernameOpt = userService.getLoginUsername(session);
+    if (usernameOpt.isEmpty()) {
       return Redirects.ROOT;
     }
-    String username = loginUser.toString();
-    var movies = movieRepository.findAllByUser_NameOrderByWatchTimeDesc(username);
+    String username = usernameOpt.get();
+    var movies = movieService.listDtosByUsername(username);
     model.addAttribute("movies", movies);
     model.addAttribute("username", username);
     return Views.MOVIE_LIST;
@@ -50,37 +47,34 @@ public class MovieController {
 
   @RequestMapping("/new")
   public String newPage(Model model, HttpSession session) {
-    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
-    if (loginUser == null) {
+    var usernameOpt = userService.getLoginUsername(session);
+    if (usernameOpt.isEmpty()) {
       return Redirects.ROOT;
     }
-    model.addAttribute("movie", new Movie());
+    model.addAttribute("form", new MovieCreateForm());
     return Views.MOVIE_NEW;
   }
 
   @PostMapping("/save")
-  public String save(@Valid Movie movie, BindingResult bindingResult, HttpSession session) {
-    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
-    if (loginUser == null) {
+  public String save(@Valid MovieCreateForm form, BindingResult bindingResult, HttpSession session) {
+    var usernameOpt = userService.getLoginUsername(session);
+    if (usernameOpt.isEmpty()) {
       return Redirects.ROOT;
     }
     if (bindingResult.hasErrors()) {
       return Views.MOVIE_NEW;
     }
-    String username = loginUser.toString();
-    var userOpt = userRepository.findByName(username);
-    if (userOpt.isEmpty()) {
+    String username = usernameOpt.get();
+    if (movieService.createMovieDto(form, username).isEmpty()) {
       return Redirects.ROOT;
     }
-    movie.setUser(userOpt.get());
-    movieRepository.save(movie);
     return Redirects.MOVIE_LIST;
   }
 
   @RequestMapping("/upload_page")
   public String uploadPage(String watchTime, Model model, HttpSession session) {
-    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
-    if (loginUser == null) {
+    var usernameOpt = userService.getLoginUsername(session);
+    if (usernameOpt.isEmpty()) {
       return Redirects.ROOT;
     }
     model.addAttribute("watchTime", watchTime);
@@ -89,35 +83,18 @@ public class MovieController {
 
   @PostMapping("/upload")
   public String upload(String watchTime, MultipartFile file, HttpSession session) throws IOException {
-    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
-    if (loginUser == null) {
+    var usernameOpt = userService.getLoginUsername(session);
+    if (usernameOpt.isEmpty()) {
       return Redirects.ROOT;
     }
-    var movieOpt = movieRepository.findByWatchTime(watchTime);
-    if (movieOpt.isEmpty()) {
-      return Redirects.MOVIE_LIST;
-    }
-
     if (file == null || file.isEmpty()) {
       throw new IOException("请选择文件");
     }
-
-    String fileName = file.getOriginalFilename();
-    if (fileName == null || fileName.isBlank()) {
-      fileName = "file";
+    String username = usernameOpt.get();
+    String stored = uploadService.saveToUploads(file);
+    if (movieService.addImage(watchTime, stored, username).isEmpty()) {
+      uploadService.deleteFromUploads(stored);
     }
-
-    Path uploadDir = Paths.get("uploads");
-    Files.createDirectories(uploadDir);
-    Path dest = uploadDir.resolve(fileName);
-    file.transferTo(dest);
-
-    Movie movie = movieOpt.get();
-    if (movie.getImages() == null) {
-      movie.setImages(new ArrayList<>());
-    }
-    movie.getImages().add(fileName);
-    movieRepository.save(movie);
 
     return Redirects.MOVIE_LIST;
   }
@@ -125,18 +102,10 @@ public class MovieController {
   @ResponseBody
   @RequestMapping("/images")
   public List<String> images(String watchTime, HttpSession session) {
-    Object loginUser = session.getAttribute(SessionKeys.LOGIN_USER);
-    if (loginUser == null) {
+    var usernameOpt = userService.getLoginUsername(session);
+    if (usernameOpt.isEmpty()) {
       return List.of();
     }
-    var movieOpt = movieRepository.findByWatchTime(watchTime);
-    if (movieOpt.isEmpty()) {
-      return List.of();
-    }
-    Movie movie = movieOpt.get();
-    if (movie.getImages() == null) {
-      return List.of();
-    }
-    return movie.getImages();
+    return movieService.listImages(watchTime, usernameOpt.get());
   }
 }
